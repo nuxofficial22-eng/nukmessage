@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>NukMessage</title>
+  <meta name="description" content="Platform chat cepat, aman, dan mudah digunakan.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://img2.pixhost.to/images/7328/716904686_sifah.jpg">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+  <style>.header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* jarak antar tombol */
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0a0f2a 0%, #0f172a 50%, #1a1a3e 100%); min-height: 100vh; }
+    .loading-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); backdrop-filter:blur(8px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10000; gap:1rem; }
+    .loading-spinner { width:50px; height:50px; border:3px solid rgba(255,255,255,0.3); border-top-color:#3b82f6; border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .auth-container { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:2rem; }
+    .auth-card { max-width:450px; width:100%; background:white; border-radius:40px; padding:2.5rem; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); animation:fadeIn 0.5s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .auth-header { text-align:center; margin-bottom:2rem; }
+    .auth-logo { width:70px; height:70px; background:white; border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; }
+    .auth-logo img { width:100%; height:100%; border-radius:20px; object-fit:cover; }
+    .auth-header h2 { font-size:28px; font-weight:700; background:linear-gradient(135deg,#1e40af,#3b82f6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .auth-header p { color:#64748b; font-size:14px; margin-top:0.5rem; }
+    .input-group { margin-bottom:1.25rem; }
+    .input-group label { display:block; margin-bottom:0.5rem; font-weight:500; color:#1e293b; font-size:14px; }
+    .input-wrapper { position:relative; }
+    .input-wrapper i { position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:#94a3b8; }
+    .input-wrapper input { width:100%; padding:0.9rem 1rem 0.9rem 2.8rem; border:2px solid #e2e8f0; border-radius:16px; font-size:14px; font-family:inherit; transition:all 0.2s; }
+    .input-wrapper input:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+    .btn-primary { width:100%; padding:0.9rem; background:linear-gradient(135deg,#2563eb,#1e40af); color:white; border:none; border-radius:16px; font-size:16px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 10px 25px -5px rgba(37,99,235,0.4); }
+    .auth-footer { text-align:center; margin-top:1.5rem; font-size:14px; color:#64748b; }
+    .auth-footer button { background:none; border:none; color:#3b82f6; font-weight:600; cursor:pointer; }
+    .chat-app { display:none; height:100vh; background:#f8fafc; }
+    .dashboard-sidebar { width:380px; background:white; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; height:100vh; position:fixed; left:0; top:0; z-index:10; }
+    .sidebar-header { padding:1.25rem 1.5rem; background:linear-gradient(135deg,#0a0f2a,#1a1a3e); display:flex; justify-content:space-between; align-items:center; }
+    .logo-area { display:flex; align-items:center; gap:10px; }
+    .logo-icon { width:36px; height:36px; border-radius:10px; object-fit:cover; }
+    .logo-area span { color:white; font-size:18px; font-weight:700; }
+    .logout-btn { background:rgba(255,255,255,0.15); border:none; padding:8px 14px; border-radius:12px; color:white; cursor:pointer; font-size:13px; transition:all 0.2s; }
+    .logout-btn:hover { background:rgba(255,255,255,0.25); }
+    .user-profile { padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:14px; cursor:pointer; transition:background 0.2s; }
+    .user-profile:hover { background:#f8fafc; }
+    .avatar { width:52px; height:52px; border-radius:50%; object-fit:cover; background:linear-gradient(135deg,#2563eb,#1e40af); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:20px; position:relative; overflow:hidden; }
+    .avatar-img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
+    .user-info { flex:1; }
+    .user-name-wrapper { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .user-name { font-weight:700; color:#1e293b; font-size:15px; }
+    .verified-badge { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; }
+    .verified-badge svg { width:100%; height:100%; }
+    .user-bio { font-size:12px; color:#64748b; margin-top:3px; }
+    .followers-count { font-size:11px; color:#3b82f6; background:#eff6ff; border-radius:20px; padding:2px 10px; display:inline-block; margin-top:6px; font-weight:600; }
+    .edit-icon { background:none; border:none; cursor:pointer; color:#94a3b8; padding:8px; border-radius:10px; transition:all 0.2s; }
+    .edit-icon:hover { background:#f1f5f9; color:#3b82f6; }
+    .search-box { padding:1rem 1.5rem; position:relative; }
+    .search-box i { position:absolute; left:2.3rem; top:50%; transform:translateY(-50%); color:#94a3b8; }
+    .search-box input { width:100%; padding:0.7rem 1rem 0.7rem 2.5rem; border:1px solid #e2e8f0; border-radius:14px; font-size:14px; }
+    .search-box input:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+    .users-list { flex:1; overflow-y:auto; }
+    .user-item { padding:0.8rem 1.5rem; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.2s; border-bottom:1px solid #f1f5f9; }
+    .user-item:hover { background:#f8fafc; }
+    .user-avatar-small { width:48px; height:48px; border-radius:50%; object-fit:cover; background:linear-gradient(135deg,#94a3b8,#64748b); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:18px; }
+    .user-item-name { display:flex; align-items:center; gap:5px; font-weight:600; font-size:14px; }
+    .follow-btn { background:#e2e8f0; border:none; border-radius:20px; padding:4px 12px; font-size:11px; font-weight:600; cursor:pointer; color:#1e293b; transition:all 0.2s; margin-left:auto; }
+    .follow-btn.following { background:#3b82f6; color:white; }
+    .chat-panel { position:fixed; right:0; top:0; width:calc(100% - 380px); height:100vh; background:#f8fafc; display:none; flex-direction:column; animation:slideInRight 0.3s ease; z-index:20; }
+    .chat-panel.active { display:flex; }
+    @keyframes slideInRight { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+    .chat-header { padding:1rem 1.5rem; background:white; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:16px; }
+    .back-btn { background:none; border:none; cursor:pointer; font-size:20px; color:#64748b; padding:8px; border-radius:12px; display:flex; align-items:center; gap:8px; }
+    .back-btn:hover { background:#f1f5f9; color:#3b82f6; }
+    .back-btn span { font-size:14px; font-weight:500; }
+    .chat-contact { display:flex; align-items:center; gap:12px; flex:1; }
+    .contact-avatar { width:48px; height:48px; border-radius:50%; object-fit:cover; background:linear-gradient(135deg,#2563eb,#1e40af); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:18px; overflow:hidden; }
+    .contact-name { font-weight:700; font-size:16px; color:#1e293b; display:flex; align-items:center; gap:6px; }
+    .contact-bio { font-size:12px; color:#64748b; margin-top:2px; }
+    .messages-container { flex:1; overflow-y:auto; padding:1.5rem; display:flex; flex-direction:column; gap:12px; }
+    .message { max-width:65%; animation:messageSlide 0.3s ease; }
+    @keyframes messageSlide { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .message.sent { align-self:flex-end; }
+    .message.received { align-self:flex-start; }
+    .message-bubble { padding:10px 18px; border-radius:22px; word-wrap:break-word; font-size:14px; line-height:1.4; }
+    .message.sent .message-bubble { background:#6b7280; color:white; box-shadow:0 1px 2px rgba(0,0,0,0.1); }
+    .message.received .message-bubble { background:linear-gradient(135deg,#2563eb,#1e40af); color:white; }
+    .message-time { font-size:10px; margin-top:4px; opacity:0.6; }
+    .message.sent .message-time { text-align:right; }
+    .message-actions { display:flex; gap:12px; margin-top:5px; font-size:11px; justify-content:flex-end; }
+    .message-actions button { background:none; border:none; cursor:pointer; font-size:11px; color:black; transition:color 0.2s; }
+    .message-actions button:hover { color:#ffffff; text-decoration:underline; }
+    .composer { padding:1rem 1.5rem; background:white; border-top:1px solid #e2e8f0; display:flex; gap:12px; align-items:center; position:relative; }
+    .emoji-btn { background:none; border:none; cursor:pointer; font-size:24px; padding:8px; border-radius:50%; transition:all 0.2s; }
+    .emoji-btn:hover { background:#f1f5f9; }
+    .message-input { flex:1; padding:12px 18px; border:1px solid #e2e8f0; border-radius:30px; font-size:14px; font-family:inherit; }
+    .message-input:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+    .send-btn { background:linear-gradient(135deg,#2563eb,#1e40af); color:white; border:none; padding:10px 26px; border-radius:30px; font-weight:600; cursor:pointer; }
+.emoji-picker {
+  position: absolute;
+  bottom: 70px;
+  left: 15px;
+  width: 300px;
+  max-height: 240px;
+  background: white;
+  border-radius: 18px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  overflow-y: auto;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+  z-index: 999;
+}
+.emoji-picker span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  font-size: 22px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+}
+.emoji-picker span:hover {
+  background: #f1f5f9;
+  transform: scale(1.25);
+}
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; }
+    .modal-content { background:white; border-radius:32px; width:90%; max-width:480px; animation:slideUp 0.3s ease; }
+    .modal-header { padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; }
+    .modal-header h3 { font-size:18px; font-weight:600; }
+    .modal-close { background:none; border:none; font-size:28px; cursor:pointer; color:#94a3b8; }
+    .modal-body { padding:1.5rem; }
+    .avatar-upload-container { text-align:center; margin-bottom:1.5rem; }
+    .avatar-preview { position:relative; display:inline-block; cursor:pointer; }
+    .avatar-preview-img { width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.1); }
+    .avatar-preview-initial { width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg,#2563eb,#1e40af); display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:bold; color:white; }
+    .avatar-upload-overlay { position:absolute; bottom:0; right:0; background:#3b82f6; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:white; border:2px solid white; cursor:pointer; }
+    #avatarInput { display:none; }
+    textarea { width:100%; padding:0.8rem; border:1px solid #e2e8f0; border-radius:14px; font-family:inherit; resize:vertical; }
+    .profile-view-avatar { width:100px; height:100px; border-radius:50%; object-fit:cover; margin:0 auto 1rem; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#2563eb,#1e40af); color:white; font-size:40px; font-weight:bold; }
+    .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); background:#1e293b; color:white; padding:12px 24px; border-radius:50px; font-size:14px; z-index:1100; transition:all 0.3s; opacity:0; }
+    .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+    .toast.success { background:#22c55e; }
+    .toast.error { background:#ef4444; }
+    .notification-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #f1f5f9; margin: 8px 15px; border-radius: 20px; }
+    .toggle-label { font-size: 14px; font-weight: 500; color: #1e293b; }
+    .toggle-switch { position: relative; display: inline-block; width: 52px; height: 26px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: 0.3s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:checked + .slider:before { transform: translateX(26px); }
+    @media (max-width:768px) { .dashboard-sidebar { width:100%; z-index:10; } .chat-panel { width:100%; z-index:20; } .message { max-width:85%; } .emoji-picker { width:280px; } }
+    .loading-overlay p { color: #ffffff; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+    .composer { position: sticky; bottom: 0; z-index: 10; }
+    .notification-alert {
+  display: none;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 8px 15px 12px 15px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #bfdbfe;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.08);
+  animation: fadeIn 0.4s ease;
+}
+.alert-icon {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+}
+.alert-content {
+  flex: 1;
+}
+.alert-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 2px;
+}
+.alert-text {
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.4;
+}
+.profile-link-container { background:#f1f5f9; border-radius:16px; padding:12px; margin:16px 0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.profile-link-container input { flex:1; border:none; background:transparent; font-size:13px; color:#1e293b; }
+.copy-link-btn { background:#2563eb; color:white; border:none; border-radius:12px; padding:6px 12px; font-size:12px; cursor:pointer; }
+.profile-link-container input:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.notification-toggle {
+  display: none;
+}
+  </style>
+</head>
+<body>
+
+<div id="loadingOverlay" class="loading-overlay" style="display: flex;"><div class="loading-spinner"></div><p>Loading...</p></div>
+<div id="authPage" style="display: none;"><div class="auth-container"><div class="auth-card"><div class="auth-header"><div class="auth-logo"><img src="https://img2.pixhost.to/images/7327/716896231_sifah.jpg" alt="Logo"></div><h2>NukMessage</h2><p>Platform Chat</p></div><div id="loginFormContainer"><form id="loginForm"><div class="input-group"><label>Email</label><div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="contoh@gmail.com" required></div></div><div class="input-group"><label>Password</label><div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Password" required></div></div><button type="submit" class="btn-primary">Masuk</button></form><p class="auth-footer">Belum punya akun? <button id="showRegisterBtn">Daftar</button></p></div><div id="registerFormContainer" style="display: none;"><form id="registerForm"><div class="input-group"><label>Nama</label><div class="input-wrapper"><i class="fas fa-user"></i><input type="text" id="registerName" placeholder="Nama Anda" required></div></div><div class="input-group"><label>Email</label><div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="registerEmail" placeholder="contoh@gmail.com" required></div></div><div class="input-group"><label>Password</label><div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="registerPassword" placeholder="Min. 6 karakter" required></div></div><button type="submit" class="btn-primary">Daftar</button></form><p class="auth-footer">Sudah punya akun? <button id="showLoginBtn">Masuk</button></p></div></div></div></div>
+
+<div id="chatApp" style="display: none;">
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="logo-area">
+        <img src="https://img2.pixhost.to/images/7327/716896231_sifah.jpg" class="logo-icon">
+        <span>NukMessage</span>
+      </div>
+      <div class="header-buttons">
+        <button id="notifBtn" class="logout-btn">
+          <i class="fas fa-bullhorn"></i>
+        </button>
+<button id="logoutBtn" class="logout-btn">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+  </svg>
+</button>
+      </div>
+    </div>
+    <div class="user-profile" id="openProfileBtn">
+        <div class="avatar" id="userAvatarContainer">
+            <span id="userAvatarText">U</span>
+            <img id="userAvatarImg" class="avatar-img" style="display: none;">
+        </div>
+        <div class="user-info">
+            <div class="user-name-wrapper">
+                <span class="user-name" id="userName"></span>
+                <span id="userVerifiedBadge" class="verified-badge" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M11.5283 1.5999C11.7686 1.29437 12.2314 1.29437 12.4717 1.5999L14.2805 3.90051C14.4309 4.09173 14.6818 4.17325 14.9158 4.10693L17.7314 3.3089C18.1054 3.20292 18.4799 3.475 18.4946 3.86338L18.6057 6.78783C18.615 7.03089 18.77 7.24433 18.9984 7.32823L21.7453 8.33761C22.1101 8.47166 22.2532 8.91189 22.0368 9.23478L20.4078 11.666C20.2724 11.8681 20.2724 12.1319 20.4078 12.334L22.0368 14.7652C22.2532 15.0881 22.1101 15.5283 21.7453 15.6624L18.9984 16.6718C18.77 16.7557 18.615 16.9691 18.6057 17.2122L18.4946 20.1366C18.4799 20.525 18.1054 20.7971 17.7314 20.6911L14.9158 19.8931C14.6818 19.8267 14.4309 19.9083 14.2805 20.0995L12.4717 22.4001C12.2314 22.7056 11.7686 22.7056 11.5283 22.4001L9.71949 20.0995C9.56915 19.9083 9.31823 19.8267 9.08421 19.8931L6.26856 20.6911C5.89463 20.7971 5.52014 20.525 5.50539 20.1366L5.39427 17.2122C5.38503 16.9691 5.22996 16.7557 5.00164 16.6718L2.25467 15.6624C1.88986 15.5283 1.74682 15.0881 1.96317 14.7652L3.59221 12.334C3.72761 12.1319 3.72761 11.8681 3.59221 11.666L1.96317 9.23478C1.74682 8.91189 1.88986 8.47166 2.25467 8.33761L5.00165 7.32823C5.22996 7.24433 5.38503 7.03089 5.39427 6.78783L5.50539 3.86338C5.52014 3.475 5.89463 3.20292 6.26857 3.3089L9.08421 4.10693C9.31823 4.17325 9.56915 4.09173 9.71949 3.90051L11.5283 1.5999Z" fill="#1DA1F2"/><path d="M9 12L11 14L15 10" stroke="#fff" stroke-width="1.8"/></svg>
+                </span>
+            </div>
+            <div class="user-bio" id="userBio"></div>
+            <div class="followers-count" id="userFollowersCount">0 pengikut</div>
+        </div>
+        <button class="edit-icon" id="editProfileBtn"><i class="fas fa-pen"></i></button>
+    </div>
+    
+    <div class="notification-toggle">
+      <span class="toggle-label"><i class="fas fa-bell"></i> Message Notification</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="notificationToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+<div class="notification-alert">
+  <div class="alert-icon">
+<i class="fas fa-circle-info"></i>
+  </div>
+  <div class="alert-content">
+    <div class="alert-title"> Information</div>
+    <div class="alert-text">
+      Website ini masih dalam proses pengembangan.
+Beberapa fitur mungkin belum berfungsi secara optimal.
+    </div>
+  </div>
+</div>
+
+    <div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Cari pengguna..."></div>
+    <div class="users-list" id="usersList"></div>
+  </div>
+  <div id="chatPanel" class="chat-panel"><div class="chat-header"><button id="backBtn" class="back-btn"><i class="fas fa-arrow-left"></i><span>Kembali</span></button><div class="chat-contact"><div id="chatAvatarContainer" class="contact-avatar"><span id="chatAvatarText">U</span><img id="chatAvatarImg" style="display: none; width:100%; height:100%; border-radius:50%; object-fit:cover;"></div><div><div class="contact-name"><span id="chatName"></span><span id="chatVerifiedBadge" class="verified-badge" style="display: none;"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M11.5283 1.5999C11.7686 1.29437 12.2314 1.29437 12.4717 1.5999L14.2805 3.90051C14.4309 4.09173 14.6818 4.17325 14.9158 4.10693L17.7314 3.3089C18.1054 3.20292 18.4799 3.475 18.4946 3.86338L18.6057 6.78783C18.615 7.03089 18.77 7.24433 18.9984 7.32823L21.7453 8.33761C22.1101 8.47166 22.2532 8.91189 22.0368 9.23478L20.4078 11.666C20.2724 11.8681 20.2724 12.1319 20.4078 12.334L22.0368 14.7652C22.2532 15.0881 22.1101 15.5283 21.7453 15.6624L18.9984 16.6718C18.77 16.7557 18.615 16.9691 18.6057 17.2122L18.4946 20.1366C18.4799 20.525 18.1054 20.7971 17.7314 20.6911L14.9158 19.8931C14.6818 19.8267 14.4309 19.9083 14.2805 20.0995L12.4717 22.4001C12.2314 22.7056 11.7686 22.7056 11.5283 22.4001L9.71949 20.0995C9.56915 19.9083 9.31823 19.8267 9.08421 19.8931L6.26856 20.6911C5.89463 20.7971 5.52014 20.525 5.50539 20.1366L5.39427 17.2122C5.38503 16.9691 5.22996 16.7557 5.00164 16.6718L2.25467 15.6624C1.88986 15.5283 1.74682 15.0881 1.96317 14.7652L3.59221 12.334C3.72761 12.1319 3.72761 11.8681 3.59221 11.666L1.96317 9.23478C1.74682 8.91189 1.88986 8.47166 2.25467 8.33761L5.00165 7.32823C5.22996 7.24433 5.38503 7.03089 5.39427 6.78783L5.50539 3.86338C5.52014 3.475 5.89463 3.20292 6.26857 3.3089L9.08421 4.10693C9.31823 4.17325 9.56915 4.09173 9.71949 3.90051L11.5283 1.5999Z" fill="#1DA1F2"/><path d="M9 12L11 14L15 10" stroke="#fff" stroke-width="1.8"/></svg></span></div><div class="contact-bio" id="chatBio"></div></div></div><button id="viewProfileBtn" class="edit-icon"><i class="fas fa-info-circle"></i></button></div>
+    <div class="messages-container" id="messagesContainer"></div>
+    <div class="composer"><button id="emojiBtn" class="emoji-btn"><i class="far fa-smile-wink"></i></button><div id="emojiPicker" class="emoji-picker" style="display: none;"></div><input type="text" id="messageInput" class="message-input" placeholder="Ketik pesan..."><button id="sendBtn" class="send-btn">Kirim</button></div>
+  </div>
+</div>
+
+<div id="editProfileModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Edit Profil</h3><button class="modal-close" onclick="closeModal('editProfileModal')">&times;</button></div><div class="modal-body"><div class="avatar-upload-container"><div class="avatar-preview" id="avatarPreviewClick"><div id="editAvatarPreview"><div class="avatar-preview-initial" id="editAvatarInitial">U</div><img id="editAvatarImg" class="avatar-preview-img" style="display: none;"></div><div class="avatar-upload-overlay"><i class="fas fa-camera"></i></div></div><input type="file" id="avatarInput" accept="image/jpeg,image/png,image/jpg,image/gif"><p style="font-size:11px; color:#94a3b8; margin-top:8px;">Klik kamera untuk upload foto profil</p></div><div class="input-group"><label>Nama</label><input type="text" id="editName" style="width:100%; padding:0.8rem; border:1px solid #e2e8f0; border-radius:14px;"></div><div class="input-group"><label>Bio</label><textarea id="editBio" rows="3" placeholder="Tulis bio Anda..."></textarea></div><div class="profile-link-container"><input type="text" id="profileLinkInput" readonly><button id="copyLinkBtn" class="copy-link-btn"><i class="fas fa-copy"></i> Salin</button></div><button id="saveProfileBtn" class="btn-primary">Simpan Perubahan</button></div></div></div>
+<div id="viewProfileModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Profil Pengguna</h3><button class="modal-close" onclick="closeModal('viewProfileModal')">&times;</button></div><div class="modal-body" style="text-align:center;">
+    <div id="viewAvatarContainer"><div id="viewAvatarInitial" class="profile-view-avatar">U</div><img id="viewAvatarImg" class="profile-view-avatar" style="display:none;"></div>
+    <h3 id="viewName"></h3>
+    <p id="viewBio" style="color:#64748b;"></p>
+    <div class="followers-count" id="viewFollowersCount" style="margin: 10px auto; display: inline-block;">0 pengikut</div>
+    <button id="followFromModalBtn" class="btn-primary" style="margin-top:16px; padding:8px 20px;">Ikuti</button>
+</div></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+// ============================================
+// SUPABASE CONFIG - AMAN & TERSEMBUNYI
+// ============================================
+const _urlBase64 = 'aHR0cHM6Ly91YnVucnFxdXNlZ290bmN1a25jaC5zdXBhYmFzZS5jbw==';
+const _keyBase64 = 'c2JfcHVibGlzaGFibGVfb3pOazVZN05nNGlXUWpRQlhQTEFEd19UVjRjRHZYZg==';
+function decodeBase64(str) { try { return atob(str); } catch (e) { return ''; } }
+const SUPABASE_URL = decodeBase64(_urlBase64);
+const SUPABASE_KEY = decodeBase64(_keyBase64);
+try {
+    Object.defineProperty(window, 'SUPABASE_URL', { value: SUPABASE_URL, writable: false, configurable: false, enumerable: false });
+    Object.defineProperty(window, 'SUPABASE_KEY', { value: SUPABASE_KEY, writable: false, configurable: false, enumerable: false });
+} catch (e) {}
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { realtime: { params: { eventsPerSecond: 10 } } });
+setTimeout(() => { delete window._urlBase64; delete window._keyBase64; }, 0);
+
+let currentUser = null, selectedUser = null, messagesChannel = null, profilesChannel = null, selectedFile = null;
+let notificationEnabled = false;
+let followingList = new Set();
+let pendingTargetUid = null;
+let followersChannel = null;
+
+// --- NOTIFICATION CORE ---
+function loadNotificationSetting() {
+    const saved = localStorage.getItem('nukmessage_notification');
+    if (saved === 'true') {
+        notificationEnabled = true;
+        document.getElementById('notificationToggle').checked = true;
+    } else {
+        notificationEnabled = false;
+        document.getElementById('notificationToggle').checked = false;
+    }
+}
+function saveNotificationSetting() {
+    localStorage.setItem('nukmessage_notification', notificationEnabled);
+}
+async function requestNotificationPermission() {
+    if (!("Notification" in window)) return false;
+    if (Notification.permission === "granted") return true;
+    if (Notification.permission !== "denied") {
+        const permission = await Notification.requestPermission();
+        return permission === "granted";
+    }
+    return false;
+}
+function showDesktopNotification(senderName, messageContent, avatarUrl = null) {
+    if (!notificationEnabled) return;
+    if (Notification.permission !== "granted") return;
+    if (!selectedUser) return;
+    try {
+        new Notification(` Pesan baru dari ${senderName}`, {
+            body: messageContent.length > 100 ? messageContent.substring(0, 100) + "..." : messageContent,
+            icon: avatarUrl || "https://img2.pixhost.to/images/7327/716896231_sifah.jpg",
+            silent: false,
+            tag: `chat-${senderName}`,
+            renotify: true
+        });
+    } catch(e) { console.warn(e); }
+}
+
+document.getElementById('notificationToggle')?.addEventListener('change', async (e) => {
+    notificationEnabled = e.target.checked;
+    saveNotificationSetting();
+    if (notificationEnabled) {
+        const granted = await requestNotificationPermission();
+        if (!granted) {
+            showToast("Izin notifikasi ditolak browser", "error");
+            notificationEnabled = false;
+            document.getElementById('notificationToggle').checked = false;
+            saveNotificationSetting();
+        } else {
+            showToast("Notifikasi aktif", "success");
+        }
+    } else {
+        showToast("Notifikasi dimatikan", "info");
+    }
+});
+
+// Helper
+const EMOJIS = ['🗿','😡','👿','😈','😭','😜','🤪','😝','😛','😋','🤬','🥶','🥵','🤯','💩','👹','🫪','😂','☕','💀','☠️','😹','🙀','👊'];
+function showToast(msg, type='info'){ let t=document.getElementById('toast'); t.textContent=msg; t.className=`toast ${type}`; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+function showLoading(show){ document.getElementById('loadingOverlay').style.display=show?'flex':'none'; }
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+function escapeHtml(t){ if(!t) return ''; let d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+async function initStorage(){ try{ let {data:buckets}=await supabase.storage.listBuckets(); if(!buckets?.some(b=>b.name==='avatars')) await supabase.storage.createBucket('avatars',{public:true,fileSizeLimit:2097152}); }catch(e){} }
+async function uploadAvatar(file,userId){ try{ let ext=file.name.split('.').pop(), fileName=`${userId}-${Date.now()}.${ext}`, filePath=`avatars/${fileName}`; let {error}=await supabase.storage.from('avatars').upload(filePath,file,{cacheControl:'3600',upsert:true}); if(error) return null; let {data:{publicUrl}}=supabase.storage.from('avatars').getPublicUrl(filePath); return publicUrl; }catch(e){ return null; } }
+function displayAvatar(url,textEl,imgEl,def){ if(url&&url!=='null'&&url!==''){ imgEl.src=url; imgEl.style.display='block'; textEl.style.display='none'; }else{ textEl.textContent=def||'U'; textEl.style.display='flex'; imgEl.style.display='none'; } }
+
+async function loadFollowedUsers(){ if(!currentUser) return; let {data, error}=await supabase.from('follows').select('followed_id').eq('follower_id',currentUser.id); if(!error && data){ followingList.clear(); data.forEach(f=>followingList.add(f.followed_id)); } }
+async function followUser(targetId){ if(targetId===currentUser.id) return; try {
+    let {error}=await supabase.from('follows').insert([{follower_id:currentUser.id, followed_id:targetId}]);
+    if(!error){ followingList.add(targetId); await loadUsers(); await updateFollowersCountUI(); if(selectedUser && selectedUser.id === targetId) await updateViewFollowersCount(targetId); showToast('Berhasil mengikuti!','success'); }
+    else { if(error.message.includes('duplicate')) showToast('Sudah mengikuti','info'); else showToast('Gagal mengikuti','error'); }
+} catch(e){ showToast('Error: '+e.message,'error'); } }
+async function unfollowUser(targetId){ try {
+    let {error}=await supabase.from('follows').delete().eq('follower_id',currentUser.id).eq('followed_id',targetId);
+    if(!error){ followingList.delete(targetId); await loadUsers(); await updateFollowersCountUI(); if(selectedUser && selectedUser.id === targetId) await updateViewFollowersCount(targetId); showToast('Berhenti mengikuti','success'); }
+    else showToast('Gagal','error');
+} catch(e){ showToast('Error: '+e.message,'error'); } }
+
+async function getFollowersCount(userId) {
+    let { count, error } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('followed_id', userId);
+    if (error) return 0;
+    return count || 0;
+}
+
+async function updateFollowersCountUI() {
+    if (!currentUser) return;
+    let count = await getFollowersCount(currentUser.id);
+    let el = document.getElementById('userFollowersCount');
+    if (el) el.textContent = `${count} pengikut`;
+}
+
+async function updateViewFollowersCount(userId) {
+    let count = await getFollowersCount(userId);
+    let el = document.getElementById('viewFollowersCount');
+    if (el) el.textContent = `${count} pengikut`;
+}
+
+async function redirectToTargetUser(uid) {
+    if(!uid) return;
+    let {data: targetUser, error} = await supabase.from('profiles').select('*').eq('id', uid).single();
+    if(targetUser && currentUser && targetUser.id !== currentUser.id) {
+        selectUser(targetUser);
+    } else if(targetUser && !currentUser) {
+        pendingTargetUid = uid;
+        sessionStorage.setItem('pendingTargetUid', uid);
+    }
+}
+
+async function checkSession(){ 
+    showLoading(true); 
+    let {data:{session}}=await supabase.auth.getSession(); 
+    if(session){ 
+        await loadCurrentUser(session.user); 
+        await initStorage(); 
+        await loadFollowedUsers(); 
+        await updateFollowersCountUI();
+        showChatApp(); 
+        await loadUsers(); 
+        setupRealtimeProfiles(); 
+        setupRealtimeFollowers();
+        loadNotificationSetting();
+        let pending = sessionStorage.getItem('pendingTargetUid');
+        if(pending) {
+            sessionStorage.removeItem('pendingTargetUid');
+            await redirectToTargetUser(pending);
+        }
+        let hash = window.location.hash.substring(1);
+        if(hash && hash.startsWith('uid=')){
+            let uid = hash.substring(4);
+            await redirectToTargetUser(uid);
+        }
+    }else { 
+        showAuthPage();
+        let hash = window.location.hash.substring(1);
+        if(hash && hash.startsWith('uid=')){
+            pendingTargetUid = hash.substring(4);
+            sessionStorage.setItem('pendingTargetUid', pendingTargetUid);
+        }
+    }
+    showLoading(false); 
+}
+
+async function loadCurrentUser(user){ 
+    let {data,error}=await supabase.from('profiles').select('*').eq('id',user.id).single(); 
+    if(error&&error.code==='PGRST116'){ 
+        let {data:newProfile}=await supabase.from('profiles').insert([{id:user.id,email:user.email,display_name:user.email.split('@')[0],bio:'Hai Saya menggunakan NukMessage',is_admin:false,avatar_url:null}]).select().single(); 
+        if(newProfile) currentUser=newProfile; 
+    }else if(data) currentUser=data; 
+    updateProfileUI(); 
+    document.getElementById('profileLinkInput').value = `https://message.nukk.my.id/#uid=${currentUser.id}`;
+}
+function updateProfileUI(){ if(!currentUser) return; let initial=currentUser.display_name?.charAt(0).toUpperCase()||'U'; displayAvatar(currentUser.avatar_url,document.getElementById('userAvatarText'),document.getElementById('userAvatarImg'),initial); document.getElementById('userName').textContent=currentUser.display_name; document.getElementById('userBio').textContent=currentUser.bio||'Tersedia'; document.getElementById('userVerifiedBadge').style.display=currentUser.is_admin?'inline-flex':'none'; }
+
+async function handleLogin(e){ e.preventDefault(); let email=document.getElementById('loginEmail').value, pwd=document.getElementById('loginPassword').value; if(!email||!pwd) return showToast('Isi semua field','error'); showLoading(true); let {error}=await supabase.auth.signInWithPassword({email,password:pwd}); showLoading(false); if(error) showToast(error.message,'error'); else{ showToast('Selamat datang!','success'); checkSession(); } }
+async function handleRegister(e){ e.preventDefault(); let email=document.getElementById('registerEmail').value, pwd=document.getElementById('registerPassword').value, name=document.getElementById('registerName').value; if(!email||!pwd||!name) return showToast('Isi semua field','error'); if(pwd.length<6) return showToast('Password min 6 karakter','error'); showLoading(true); let { error: signUpError } = await supabase.auth.signUp({ email, password: pwd, options: { data: { display_name: name, bio: 'Halo! Saya menggunakan NukMessage' } } }); if(signUpError) { showLoading(false); showToast(signUpError.message,'error'); } else { let { error: signInError } = await supabase.auth.signInWithPassword({ email, password: pwd }); showLoading(false); if(signInError) { showToast('Pendaftaran berhasil, silakan login manual','success'); switchToLogin(); document.getElementById('loginEmail').value = email; } else { showToast('Selamat datang!','success'); checkSession(); } } }
+async function handleLogout(){ if(messagesChannel) await supabase.removeChannel(messagesChannel); if(profilesChannel) await supabase.removeChannel(profilesChannel); if(followersChannel) await supabase.removeChannel(followersChannel); await supabase.auth.signOut(); currentUser=null; selectedUser=null; pendingTargetUid=null; sessionStorage.removeItem('pendingTargetUid'); showAuthPage(); showToast('Logout berhasil','success'); }
+function showAuthPage(){ document.getElementById('authPage').style.display='block'; document.getElementById('chatApp').style.display='none'; }
+function showChatApp(){ document.getElementById('authPage').style.display='none'; document.getElementById('chatApp').style.display='block'; }
+function switchToRegister(){ document.getElementById('loginFormContainer').style.display='none'; document.getElementById('registerFormContainer').style.display='block'; }
+function switchToLogin(){ document.getElementById('loginFormContainer').style.display='block'; document.getElementById('registerFormContainer').style.display='none'; }
+
+async function loadUsers(){ let {data,error}=await supabase.from('profiles').select('*').neq('id',currentUser.id).order('display_name'); if(!error) renderUsers(data||[]); }
+function renderUsers(users){ let container=document.getElementById('usersList'); container.innerHTML=''; if(users.length===0){ container.innerHTML='<div style="padding:20px;text-align:center;color:#64748b;">Tidak ada pengguna lain</div>'; return; } users.forEach(user=>{ let isFollowing = followingList.has(user.id); let div=document.createElement('div'); div.className='user-item'; let initial=user.display_name?.charAt(0).toUpperCase()||'U'; div.innerHTML=`<div>${user.avatar_url&&user.avatar_url!=='null'?`<img src="${user.avatar_url}" class="user-avatar-small" style="object-fit:cover;">`:`<div class="user-avatar-small">${initial}</div>`}</div><div style="flex:1;"><div class="user-item-name">${escapeHtml(user.display_name)}${user.is_admin?'<span class="verified-badge"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M11.5283 1.5999C11.7686 1.29437 12.2314 1.29437 12.4717 1.5999L14.2805 3.90051C14.4309 4.09173 14.6818 4.17325 14.9158 4.10693L17.7314 3.3089C18.1054 3.20292 18.4799 3.475 18.4946 3.86338L18.6057 6.78783C18.615 7.03089 18.77 7.24433 18.9984 7.32823L21.7453 8.33761C22.1101 8.47166 22.2532 8.91189 22.0368 9.23478L20.4078 11.666C20.2724 11.8681 20.2724 12.1319 20.4078 12.334L22.0368 14.7652C22.2532 15.0881 22.1101 15.5283 21.7453 15.6624L18.9984 16.6718C18.77 16.7557 18.615 16.9691 18.6057 17.2122L18.4946 20.1366C18.4799 20.525 18.1054 20.7971 17.7314 20.6911L14.9158 19.8931C14.6818 19.8267 14.4309 19.9083 14.2805 20.0995L12.4717 22.4001C12.2314 22.7056 11.7686 22.7056 11.5283 22.4001L9.71949 20.0995C9.56915 19.9083 9.31823 19.8267 9.08421 19.8931L6.26856 20.6911C5.89463 20.7971 5.52014 20.525 5.50539 20.1366L5.39427 17.2122C5.38503 16.9691 5.22996 16.7557 5.00164 16.6718L2.25467 15.6624C1.88986 15.5283 1.74682 15.0881 1.96317 14.7652L3.59221 12.334C3.72761 12.1319 3.72761 11.8681 3.59221 11.666L1.96317 9.23478C1.74682 8.91189 1.88986 8.47166 2.25467 8.33761L5.00165 7.32823C5.22996 7.24433 5.38503 7.03089 5.39427 6.78783L5.50539 3.86338C5.52014 3.475 5.89463 3.20292 6.26857 3.3089L9.08421 4.10693C9.31823 4.17325 9.56915 4.09173 9.71949 3.90051L11.5283 1.5999Z" fill="#1DA1F2"/><path d="M9 12L11 14L15 10" stroke="#fff" stroke-width="1.8"/></svg></span>':''}</div><div style="font-size:12px;color:#64748b;">${escapeHtml(user.bio||'Tidak ada bio')}</div></div><button class="follow-btn ${isFollowing?'following':''}" data-id="${user.id}">${isFollowing?'Mengikuti':'Ikuti'}</button>`; let followBtn=div.querySelector('.follow-btn'); followBtn.addEventListener('click',async (e)=>{ e.stopPropagation(); if(followingList.has(user.id)) await unfollowUser(user.id); else await followUser(user.id); }); div.addEventListener('click',()=>selectUser(user)); container.appendChild(div); }); }
+
+function selectUser(user){ selectedUser=user; let initial=user.display_name?.charAt(0).toUpperCase()||'U'; if(user.avatar_url&&user.avatar_url!=='null'){ document.getElementById('chatAvatarImg').src=user.avatar_url; document.getElementById('chatAvatarImg').style.display='block'; document.getElementById('chatAvatarText').style.display='none'; }else{ document.getElementById('chatAvatarText').textContent=initial; document.getElementById('chatAvatarText').style.display='flex'; document.getElementById('chatAvatarImg').style.display='none'; } document.getElementById('chatName').textContent=user.display_name; document.getElementById('chatBio').textContent=user.bio||'Tidak ada bio'; document.getElementById('chatVerifiedBadge').style.display=user.is_admin?'inline-flex':'none'; loadMessages(); setupRealtimeMessages(); document.getElementById('chatPanel').classList.add('active'); }
+function closeChatPanel(){ document.getElementById('chatPanel').classList.remove('active'); if(messagesChannel) supabase.removeChannel(messagesChannel); messagesChannel=null; selectedUser=null; }
+async function loadMessages(){ if(!selectedUser) return; let {data}=await supabase.from('messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${currentUser.id})`).order('created_at',{ascending:true}); if(data) renderMessages(data); }
+function renderMessages(messages){ let container=document.getElementById('messagesContainer'); container.innerHTML=''; messages.forEach(msg=>{ let isSent=msg.sender_id===currentUser.id; let div=document.createElement('div'); div.className=`message ${isSent?'sent':'received'}`; div.id=`msg-${msg.id}`; let time=new Date(msg.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); div.innerHTML=`<div class="message-bubble">${escapeHtml(msg.content)}${msg.is_edited?' <small style="opacity:0.7;">(edited)</small>':''}</div><div class="message-time">${time}</div>${isSent?`<div class="message-actions"><button onclick="editMessage('${msg.id}','${escapeHtml(msg.content).replace(/'/g,"\\'")}')">Edit</button></div>`:''}`; container.appendChild(div); }); container.scrollTop=container.scrollHeight; }
+async function sendMessage(){ let input=document.getElementById('messageInput'), content=input.value.trim(); if(!content||!selectedUser) return; let {error}=await supabase.from('messages').insert([{sender_id:currentUser.id,receiver_id:selectedUser.id,content:content,is_edited:false}]); if(!error){ input.value=''; document.getElementById('emojiPicker').style.display='none'; }else showToast('Gagal kirim','error'); }
+window.editMessage=async function(id,currentContent){ let newContent=prompt('Edit pesan Anda:',currentContent); if(!newContent||newContent===currentContent) return; let {error}=await supabase.from('messages').update({content:newContent,is_edited:true,edited_at:new Date()}).eq('id',id); if(error) showToast('Gagal edit','error'); else showToast('Pesan di edit','success'); };
+function setupRealtimeProfiles(){ if(profilesChannel) supabase.removeChannel(profilesChannel); profilesChannel=supabase.channel('profiles-changes').on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>{ loadUsers(); if(currentUser) loadCurrentUser({id:currentUser.id}); }).subscribe(); }
+function setupRealtimeFollowers(){ if(followersChannel) supabase.removeChannel(followersChannel); if(!currentUser) return; followersChannel = supabase.channel('follows-changes').on('postgres_changes',{event:'*',schema:'public',table:'follows'},(payload) => { if((payload.new && payload.new.followed_id === currentUser.id) || (payload.old && payload.old.followed_id === currentUser.id)) { updateFollowersCountUI(); } if(selectedUser && ((payload.new && payload.new.followed_id === selectedUser.id) || (payload.old && payload.old.followed_id === selectedUser.id))) { updateViewFollowersCount(selectedUser.id); } }).subscribe(); }
+function setupRealtimeMessages(){ if(messagesChannel) supabase.removeChannel(messagesChannel); if(!selectedUser) return; messagesChannel=supabase.channel(`chat-${currentUser.id}-${selectedUser.id}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},(payload)=>{ if((payload.new.sender_id===selectedUser.id&&payload.new.receiver_id===currentUser.id)||(payload.new.sender_id===currentUser.id&&payload.new.receiver_id===selectedUser.id)) addNewMessage(payload.new); }).on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},(payload)=>{ updateExistingMessage(payload.new); }).subscribe(); }
+async function addNewMessage(msg){ if(document.getElementById(`msg-${msg.id}`)) return; let isSent=msg.sender_id===currentUser.id; let container=document.getElementById('messagesContainer'); let wasAtBottom=container.scrollHeight-container.scrollTop<=container.clientHeight+100; let div=document.createElement('div'); div.className=`message ${isSent?'sent':'received'}`; div.id=`msg-${msg.id}`; let time=new Date(msg.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); div.innerHTML=`<div class="message-bubble">${escapeHtml(msg.content)}${msg.is_edited?' <small style="opacity:0.7;">(edited)</small>':''}</div><div class="message-time">${time}</div>${isSent?`<div class="message-actions"><button onclick="editMessage('${msg.id}','${escapeHtml(msg.content).replace(/'/g,"\\'")}')">Edit</button></div>`:''}`; container.appendChild(div); if(wasAtBottom) container.scrollTop=container.scrollHeight;
+    if(!isSent && notificationEnabled && Notification.permission === "granted" && currentUser && selectedUser && msg.sender_id === selectedUser.id) {
+        let senderProfile = selectedUser;
+        showDesktopNotification(senderProfile.display_name, msg.content, senderProfile.avatar_url);
+    }
+}
+function updateExistingMessage(msg){ let el=document.getElementById(`msg-${msg.id}`); if(el){ let bubble=el.querySelector('.message-bubble'); if(bubble) bubble.innerHTML=`${escapeHtml(msg.content)}${msg.is_edited?' <small style="opacity:0.7;">(edited)</small>':''}`; } }
+
+function openEditProfileModal(){ document.getElementById('editName').value=currentUser.display_name; document.getElementById('editBio').value=currentUser.bio||''; if(currentUser.avatar_url&&currentUser.avatar_url!=='null'&&currentUser.avatar_url!==''){ document.getElementById('editAvatarImg').src=currentUser.avatar_url; document.getElementById('editAvatarImg').style.display='block'; document.getElementById('editAvatarInitial').style.display='none'; }else{ let initial=currentUser.display_name?.charAt(0).toUpperCase()||'U'; document.getElementById('editAvatarInitial').textContent=initial; document.getElementById('editAvatarInitial').style.display='flex'; document.getElementById('editAvatarImg').style.display='none'; } document.getElementById('editProfileModal').style.display='flex'; }
+document.getElementById('avatarPreviewClick')?.addEventListener('click',()=>document.getElementById('avatarInput').click());
+document.getElementById('avatarInput')?.addEventListener('change',(e)=>{ let file=e.target.files[0]; if(!file) return; if(!file.type.startsWith('image/')) return showToast('Pilih file gambar','error'); if(file.size>2*1024*1024) return showToast('Maksimal 2MB','error'); let reader=new FileReader(); reader.onload=ev=>{ document.getElementById('editAvatarImg').src=ev.target.result; document.getElementById('editAvatarImg').style.display='block'; document.getElementById('editAvatarInitial').style.display='none'; }; reader.readAsDataURL(file); selectedFile=file; });
+document.getElementById('copyLinkBtn')?.addEventListener('click',()=>{ let linkInput=document.getElementById('profileLinkInput'); linkInput.select(); document.execCommand('copy'); showToast('Link profil disalin!','success'); });
+async function saveProfile(){ let displayName=document.getElementById('editName').value, bio=document.getElementById('editBio').value; if(!displayName) return showToast('Nama wajib diisi','error'); showLoading(true); let avatarUrl=currentUser.avatar_url; if(selectedFile){ let uploaded=await uploadAvatar(selectedFile,currentUser.id); if(uploaded) avatarUrl=uploaded; else{ showLoading(false); return showToast('Gagal upload gambar','error'); } } let {error}=await supabase.from('profiles').update({display_name:displayName,bio:bio,avatar_url:avatarUrl}).eq('id',currentUser.id); if(!error){ currentUser.display_name=displayName; currentUser.bio=bio; currentUser.avatar_url=avatarUrl; updateProfileUI(); closeModal('editProfileModal'); await loadUsers(); if(selectedUser&&selectedUser.id===currentUser.id) selectUser(selectedUser); showToast('Profil diperbarui!','success'); selectedFile=null; }else showToast('Gagal update','error'); showLoading(false); }
+function showUserProfileModal(user){ 
+    let initial=user.display_name?.charAt(0).toUpperCase()||'U'; 
+    if(user.avatar_url&&user.avatar_url!=='null'&&user.avatar_url!==''){ 
+        document.getElementById('viewAvatarImg').src=user.avatar_url; 
+        document.getElementById('viewAvatarImg').style.display='block'; 
+        document.getElementById('viewAvatarInitial').style.display='none'; 
+    }else{ 
+        document.getElementById('viewAvatarInitial').textContent=initial; 
+        document.getElementById('viewAvatarInitial').style.display='flex'; 
+        document.getElementById('viewAvatarImg').style.display='none'; 
+    } 
+    document.getElementById('viewName').textContent=user.display_name; 
+    document.getElementById('viewBio').textContent=user.bio||'Belum ada bio'; 
+    updateViewFollowersCount(user.id);
+    let followBtnModal=document.getElementById('followFromModalBtn');
+    let isFollowing=followingList.has(user.id);
+    followBtnModal.textContent=isFollowing?'Mengikuti':'Ikuti';
+    followBtnModal.onclick=async()=>{ 
+        if(followingList.has(user.id)) await unfollowUser(user.id); 
+        else await followUser(user.id); 
+        closeModal('viewProfileModal');
+        await loadFollowedUsers();
+        await loadUsers();
+        await updateViewFollowersCount(user.id);
+    };
+    document.getElementById('viewProfileModal').style.display='flex'; 
+}
+function renderEmojiPicker(){ let picker=document.getElementById('emojiPicker'); picker.innerHTML=''; EMOJIS.forEach(emoji=>{ let span=document.createElement('span'); span.textContent=emoji; span.onclick=()=>{ document.getElementById('messageInput').value+=emoji; picker.style.display='none'; document.getElementById('messageInput').focus(); }; picker.appendChild(span); }); }
+function toggleEmojiPicker(){ let p=document.getElementById('emojiPicker'); if(p.style.display==='none'){ renderEmojiPicker(); p.style.display='grid'; }else p.style.display='none'; }
+function searchUsers(){ let term=document.getElementById('searchInput').value.toLowerCase(); document.querySelectorAll('.user-item').forEach(item=>{ let name=item.querySelector('.user-item-name')?.textContent.toLowerCase()||''; item.style.display=name.includes(term)?'flex':'none'; }); }
+
+// Event listeners
+document.getElementById('loginForm')?.addEventListener('submit',handleLogin);
+document.getElementById('registerForm')?.addEventListener('submit',handleRegister);
+document.getElementById('showRegisterBtn')?.addEventListener('click',switchToRegister);
+document.getElementById('showLoginBtn')?.addEventListener('click',switchToLogin);
+document.getElementById('logoutBtn')?.addEventListener('click',handleLogout);
+document.getElementById('sendBtn')?.addEventListener('click',sendMessage);
+document.getElementById('messageInput')?.addEventListener('keypress',(e)=>{ if(e.key==='Enter') sendMessage(); });
+document.getElementById('searchInput')?.addEventListener('input',searchUsers);
+document.getElementById('emojiBtn')?.addEventListener('click',toggleEmojiPicker);
+document.getElementById('openProfileBtn')?.addEventListener('click',openEditProfileModal);
+document.getElementById('editProfileBtn')?.addEventListener('click',openEditProfileModal);
+document.getElementById('saveProfileBtn')?.addEventListener('click',saveProfile);
+document.getElementById('viewProfileBtn')?.addEventListener('click',()=>{ if(selectedUser) showUserProfileModal(selectedUser); });
+document.getElementById('backBtn')?.addEventListener('click',closeChatPanel);
+document.addEventListener('click',(e)=>{ let picker=document.getElementById('emojiPicker'); let btn=document.getElementById('emojiBtn'); if(picker&&!picker.contains(e.target)&&e.target!==btn&&!btn?.contains(e.target)) picker.style.display='none'; });
+window.onclick=(e)=>{ if(e.target.classList.contains('modal')) e.target.style.display='none'; };
+checkSession();
+
+// TOGGLE NOTIF
+const notifBtn = document.getElementById('notifBtn');
+const notifBox = document.querySelector('.notification-alert');
+
+notifBtn.addEventListener('click', () => {
+  if (notifBox.style.display === 'none' || notifBox.style.display === '') {
+    notifBox.style.display = 'flex';
+  } else {
+    notifBox.style.display = 'none';
+  }
+});
+
+// Klik luar = tutup
+document.addEventListener('click', (e) => {
+  if (!notifBox.contains(e.target) && !notifBtn.contains(e.target)) {
+    notifBox.style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>
